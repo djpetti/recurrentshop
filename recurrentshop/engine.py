@@ -815,9 +815,19 @@ class RecurrentModel(Recurrent):
             model = None
         else:
             model = Model.from_config(model_config, custom_objects)
+
+        readout_input = None
         if type(model.input) is list:
             input = model.input[0]
-            initial_states = model.input[1:]
+
+            # The readout input gets appended to the input list.
+            if len(model.input) == len(model.output) + 1:
+              # We have readout.
+              readout_input = model.input[-1]
+              initial_states = model.input[1:-1]
+            else:
+              initial_states = model.input[1:]
+
         else:
             input = model.input
             initial_states = None
@@ -827,7 +837,9 @@ class RecurrentModel(Recurrent):
         else:
             output = model.output
             final_states = None
-        return cls(input, output, initial_states, final_states, **config)
+
+        return cls(input, output, initial_states, final_states,
+                   readout_input=readout_input, **config)
 
     def get_cell(self, **kwargs):
         return RNNCellFromModel(self.model, **kwargs)
