@@ -665,12 +665,14 @@ class RecurrentModel(Recurrent):
         else:
             model_input = [inputs] + states
         shapes = []
+        keras_inputs = []
         for x in model_input:
             if hasattr(x, '_keras_shape'):
                 shapes.append(x._keras_shape)
+                keras_inputs.append(x)
                 del x._keras_shape  # Else keras internals will get messed up.
         model_output = _to_list(self.model.call(model_input))
-        for x, s in zip(model_input, shapes):
+        for x, s in zip(keras_inputs, shapes):
             setattr(x, '_keras_shape', s)
         if self.decode:
             model_output.insert(1, model_input[0])
